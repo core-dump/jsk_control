@@ -44,16 +44,27 @@ class AxesConverter:
       rel_axis = (((abs_axis - in_origin) /  (1.0 - in_origin)) * (1.0 - out_origin)) + out_origin
     return rel_axis
 
+class AxesConverterArray:
+  def __init__(self, axes, max_page=1):
+    self.ac = [AxesConverter(axes) for i in range(max_page)]
+    self.crt_page = 0
+
+  def convert(self, abs_axes, page=None):
+    if page is None:
+      return self.ac[self.crt_page].convert(abs_axes)
+    else:
+      return self.ac[page].convert(abs_axes)
+
 def joy_callback(data):
-  global ac
+  global aca
   try:
-    ac
+    aca
   except NameError:
-    ac = AxesConverter(data.axes)
+    aca = AxesConverterArray(data.axes)
   joy_pub = rospy.Publisher("/joy_relative", Joy)
   joy = Joy()
   joy.header.stamp = rospy.Time.now()
-  joy.axes = ac.convert(data.axes)
+  joy.axes = aca.convert(data.axes)
   joy.buttons = data.buttons
   joy_pub.publish(joy)
 

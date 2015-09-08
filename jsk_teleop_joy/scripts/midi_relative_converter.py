@@ -58,7 +58,7 @@ def joy_callback(data):
   joy_pub.publish(joy)
 
 def main():
-  rospy.init_node('midi_joy')
+  rospy.init_node('midi_relative_converter')
   rospy.Subscriber("/joy", Joy, joy_callback)
   rospy.spin()
 

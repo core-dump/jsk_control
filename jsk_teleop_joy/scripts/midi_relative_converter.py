@@ -62,14 +62,15 @@ class AxesConverterArray:
   def __init__(self, axes, max_page=1):
     self.ac = [AxesConverter(axes) for i in range(max_page)]
     self.crt_page = 0
+    self.prev_input_axes = [0.0] * (len(axes))
 
   def convert(self, abs_axes):
-    self.__updateReserveInputOrigins(abs_axes)
     return self.ac[self.crt_page].convert(abs_axes)
 
   def switch_page(self, page):
     if page >= 0 and page < len(self.ac):
       if page != self.crt_page:
+        self.__updateReserveInputOrigins(self.prev_input_axes)
         self.__updateCurrentOutputOrigins()
         self.crt_page = page
       return page
@@ -95,6 +96,7 @@ def joy_callback(data):
   joy = Joy()
   joy.header.stamp = rospy.Time.now()
   joy.axes = aca.convert(data.axes)
+  aca.prev_input_axes = list(data.axes)
   joy.buttons = data.buttons
   joy_pub.publish(joy)
 

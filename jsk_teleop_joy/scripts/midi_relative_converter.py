@@ -73,6 +73,10 @@ class AxesConverterArray:
     self.ac = [AxesConverter() for i in range(max_page)]
     self.crt_page = 0
     self.prev_input_axes = []
+    for page in range(max_page):
+      joy_pub = rospy.Publisher("/joy_relative/page_" + str(page), Joy)
+    rospy.Subscriber("/joy", Joy, self.joy_callback)
+    rospy.Subscriber("/midi_relative_converter/command/switch_page", Int8, self.switch_page_cmd_cb)
 
   def convert(self, abs_axes):
     return self.ac[self.crt_page].convert(abs_axes)
@@ -97,24 +101,21 @@ class AxesConverterArray:
   def __updateCurrentOutputOrigins(self):
     self.ac[self.crt_page].updateOutputOrigins()
 
-def joy_callback(data):
-  joy_pub = rospy.Publisher("/joy_relative/page_" + str(aca.crt_page), Joy)
-  joy = Joy()
-  joy.header.stamp = rospy.Time.now()
-  joy.axes = aca.convert(data.axes)
-  aca.prev_input_axes = list(data.axes)
-  joy.buttons = data.buttons
-  joy_pub.publish(joy)
+  def joy_callback(self, data):
+    joy = Joy()
+    joy.header.stamp = rospy.Time.now()
+    joy.axes = self.convert(data.axes)
+    joy.buttons = data.buttons
+    self.prev_input_axes = list(data.axes)
+    joy_pub = rospy.Publisher("/joy_relative/page_" + str(self.crt_page), Joy)
+    joy_pub.publish(joy)
 
-def switch_page_cmd_cb(msg):
-  aca.switch_page(msg.data)
+  def switch_page_cmd_cb(self, msg):
+    self.switch_page(msg.data)
 
 def main():
-  global aca
   rospy.init_node('midi_relative_converter')
   aca = AxesConverterArray(2)
-  rospy.Subscriber("/joy", Joy, joy_callback)
-  rospy.Subscriber("/midi_relative_converter/command/switch_page", Int8, switch_page_cmd_cb)
   rospy.spin()
 
 if __name__ == '__main__':

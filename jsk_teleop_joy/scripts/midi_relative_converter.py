@@ -81,7 +81,7 @@ class AxesConverterArray:
   def convert(self, abs_axes):
     return self.ac[self.crt_page].convert(abs_axes)
 
-  def switch_page(self, page):
+  def switchPage(self, page):
     if page >= 0 and page < len(self.ac):
       if page != self.crt_page:
         self.__updateReserveInputOrigins(self.prev_input_axes)
@@ -111,7 +111,7 @@ class AxesConverterArray:
     joy_pub.publish(joy)
 
   def switch_page_cmd_cb(self, msg):
-    self.switch_page(msg.data)
+    self.switchPage(msg.data)
 
 def main():
   rospy.init_node('midi_relative_converter')
